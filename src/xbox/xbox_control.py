@@ -1,120 +1,71 @@
-# MIT License
-# 
-# Copyright (c) 2017 Kevin Hughes
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+"""Xbox 360 / XInput gamepad reader (Windows, zero dependencies, ctypes)."""
+import ctypes
+import sys
+from ctypes import wintypes
+from dataclasses import dataclass
 
-"""
-Modified version of the original XboxController class by Kevin Hughes (2017).
-- Modified the `read()` function to return different joystick values.
-"""
-from inputs import get_gamepad
-import math
-import threading
-
-class XboxController(object):
-    MAX_TRIG_VAL = math.pow(2, 8)
-    MAX_JOY_VAL = math.pow(2, 15)
-
-    def __init__(self):
-
-        self.LeftJoystickY = 0
-        self.LeftJoystickX = 0
-        self.RightJoystickY = 0
-        self.RightJoystickX = 0
-        self.LeftTrigger = 0
-        self.RightTrigger = 0
-        self.LeftBumper = 0
-        self.RightBumper = 0
-        self.A = 0
-        self.X = 0
-        self.Y = 0
-        self.B = 0
-        self.LeftThumb = 0
-        self.RightThumb = 0
-        self.Back = 0
-        self.Start = 0
-        self.LeftDPad = 0
-        self.RightDPad = 0
-        self.UpDPad = 0
-        self.DownDPad = 0
-
-        self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
-        self._monitor_thread.daemon = True
-        self._monitor_thread.start()
+BTN_BACK = 0x0020
+BTN_START = 0x0010
+BTN_LB = 0x0100
+BTN_RB = 0x0200
+BTN_A = 0x1000
+BTN_B = 0x2000
+BTN_X = 0x4000
+BTN_Y = 0x8000
 
 
-    def read(self): # return the buttons/triggers that you care about in this methode
-        x = self.LeftJoystickX
-        y = self.LeftJoystickY
-        a = self.LeftTrigger
-        b = self.RightTrigger
-        rb = self.A
-        return [x, y, a, b, rb]
+class _Gamepad(ctypes.Structure):
+    _fields_ = [("buttons", wintypes.WORD),
+                ("lt", ctypes.c_ubyte), ("rt", ctypes.c_ubyte),
+                ("lx", ctypes.c_short), ("ly", ctypes.c_short),
+                ("rx", ctypes.c_short), ("ry", ctypes.c_short)]
 
 
-    def _monitor_controller(self):
-        while True:
-            events = get_gamepad()
-            for event in events:
-                if event.code == 'ABS_Y':
-                    self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
-                elif event.code == 'ABS_X':
-                    self.LeftJoystickX = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
-                elif event.code == 'ABS_RY':
-                    self.RightJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
-                elif event.code == 'ABS_RX':
-                    self.RightJoystickX = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1
-                elif event.code == 'ABS_Z':
-                    self.LeftTrigger = event.state / XboxController.MAX_TRIG_VAL # normalize between 0 and 1
-                elif event.code == 'ABS_RZ':
-                    self.RightTrigger = event.state / XboxController.MAX_TRIG_VAL # normalize between 0 and 1
-                elif event.code == 'BTN_TL':
-                    self.LeftBumper = event.state
-                elif event.code == 'BTN_TR':
-                    self.RightBumper = event.state
-                elif event.code == 'BTN_SOUTH':
-                    self.A = event.state
-                elif event.code == 'BTN_NORTH':
-                    self.Y = event.state #previously switched with X
-                elif event.code == 'BTN_WEST':
-                    self.X = event.state #previously switched with Y
-                elif event.code == 'BTN_EAST':
-                    self.B = event.state
-                elif event.code == 'BTN_THUMBL':
-                    self.LeftThumb = event.state
-                elif event.code == 'BTN_THUMBR':
-                    self.RightThumb = event.state
-                elif event.code == 'BTN_SELECT':
-                    self.Back = event.state
-                elif event.code == 'BTN_START':
-                    self.Start = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY1':
-                    self.LeftDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY2':
-                    self.RightDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY3':
-                    self.UpDPad = event.state
-                elif event.code == 'BTN_TRIGGER_HAPPY4':
-                    self.DownDPad = event.state
+class _State(ctypes.Structure):
+    _fields_ = [("packet", wintypes.DWORD), ("pad", _Gamepad)]
 
-if __name__ == '__main__':
+
+@dataclass
+class Pad:
+    connected: bool = False
+    lx: float = 0.0   # sticks -1..1, up/right positive
+    ly: float = 0.0
+    rx: float = 0.0
+    ry: float = 0.0
+    lt: float = 0.0   # triggers 0..1
+    rt: float = 0.0
+    buttons: int = 0
+
+    def down(self, mask):
+        return bool(self.buttons & mask)
+
+
+class XboxController:
+    def __init__(self, index=0):
+        if sys.platform != "win32":
+            raise RuntimeError("XInput reader is Windows-only; run this on Windows Python.")
+        self.index = index
+        for dll in ("xinput1_4", "xinput1_3", "xinput9_1_0"):
+            try:
+                self._xi = ctypes.WinDLL(dll)
+                break
+            except OSError:
+                continue
+        else:
+            raise RuntimeError("No XInput DLL found")
+
+    def read(self) -> Pad:
+        st = _State()
+        if self._xi.XInputGetState(self.index, ctypes.byref(st)) != 0:
+            return Pad(connected=False)
+        g = st.pad
+        return Pad(True, g.lx / 32768, g.ly / 32768, g.rx / 32768, g.ry / 32768,
+                   g.lt / 255, g.rt / 255, g.buttons)
+
+
+if __name__ == "__main__":
+    import time
     joy = XboxController()
     while True:
         print(joy.read())
+        time.sleep(0.1)
