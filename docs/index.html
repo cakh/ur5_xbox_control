@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xbox Robot Jog – Getting Started</title>
+<meta name="description" content="Step-by-step guide to jogging a UR or Meca500 robot with an Xbox controller from a Windows PC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Olympus Controls brand tokens (Brand Guidelines 2025) */
+  :root {
+    --green: #79b534;
+    --gray: #5d6466;
+    --navy: #2f3d4c;
+    --slate: #3f4a54;
+    --mist: #d8e0e7;
+    --silver: #d1d5d8;
+    --orange: #fe781a;
+    --red: #e1374d;
+    --blue: #0050b5;
+    --bg: #ffffff;
+    --panel: #f3f6f8;
+    --text: #2f3d4c;
+    --muted: #5d6466;
+    --code-bg: #2f3d4c;
+    --code-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Helvetica Neue", Roboto, Arial, sans-serif; line-height: 1.6; font-size: 17px;
+  }
+  a { color: var(--blue); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+  header.top { background: #fff; border-bottom: 6px solid var(--green); }
+  header.top .wrap { display: flex; align-items: center; gap: 24px; padding-top: 24px; padding-bottom: 24px; flex-wrap: wrap; }
+  header.top img { width: 220px; height: auto; display: block; }
+  header.top h1 { margin: 0; font-size: 1.9rem; line-height: 1.2; color: var(--navy); font-weight: 900; }
+  header.top p { margin: 4px 0 0; color: var(--muted); }
+
+  nav.steps { position: sticky; top: 0; z-index: 10; background: var(--navy); }
+  nav.steps .wrap { display: flex; gap: 4px; overflow-x: auto; padding-top: 0; padding-bottom: 0; }
+  nav.steps a { color: #fff; text-decoration: none; padding: 14px 12px; white-space: nowrap; font-size: .9rem; font-weight: 500; }
+  nav.steps a:hover, nav.steps a:focus { background: var(--slate); outline: none; box-shadow: inset 0 -4px 0 var(--green); }
+
+  .warn { background: #fff4ec; border-left: 8px solid var(--orange); padding: 16px 20px; margin: 28px 0; border-radius: 4px; }
+  .warn strong { color: #a84300; }
+  .note { background: var(--panel); border-left: 8px solid var(--green); padding: 12px 20px; margin: 20px 0; border-radius: 4px; }
+
+  section { margin: 48px 0; }
+  h2 { font-size: 1.6rem; color: var(--navy); margin: 0 0 12px; display: flex; align-items: center; gap: 14px; }
+  h2 .num { flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--green); color: var(--navy);
+            display: inline-flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; }
+  h3 { color: var(--slate); margin: 28px 0 8px; font-size: 1.15rem; }
+
+  .codebox { position: relative; margin: 12px 0; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 16px 84px 16px 16px; border-radius: 6px; overflow-x: auto; margin: 0;
+        font: 15px/1.5 Consolas, "Cascadia Mono", monospace; }
+  pre .c { color: #b4b8bc; }
+  button.copy { position: absolute; top: 8px; right: 8px; background: var(--green); color: var(--navy); border: 0; border-radius: 4px;
+                padding: 6px 12px; font: 700 .8rem Roboto, Arial, sans-serif; cursor: pointer; }
+  button.copy:hover, button.copy:focus-visible { background: #8fd043; outline: 2px solid #fff; }
+  code.i { background: var(--mist); padding: 1px 6px; border-radius: 3px; font: .92em Consolas, monospace; }
+
+  .tabs { display: flex; gap: 8px; margin: 12px 0 0; }
+  .tabs button { background: var(--mist); color: var(--navy); border: 0; border-radius: 6px 6px 0 0; padding: 10px 18px; font: 700 .95rem Roboto, Arial, sans-serif; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--navy); color: #fff; }
+  .tabpanel { border: 2px solid var(--navy); border-radius: 0 6px 6px 6px; padding: 8px 16px 16px; }
+  .tabpanel[hidden] { display: none; }
+
+  .ipbox { background: var(--panel); border: 2px solid var(--mist); border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .ipbox label { font-weight: 700; display: block; margin-bottom: 6px; }
+  .ipbox input { font: 1rem Consolas, monospace; padding: 8px 10px; border: 2px solid var(--gray); border-radius: 4px; width: 14em; max-width: 100%; }
+  .ipbox small { display: block; color: var(--muted); margin-top: 6px; }
+
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: .95rem; }
+  th { background: var(--navy); color: #fff; text-align: left; }
+  th, td { padding: 10px 12px; border: 1px solid var(--silver); vertical-align: top; }
+  tbody tr:nth-child(even) { background: var(--panel); }
+  .scroll { overflow-x: auto; }
+
+  details { border: 2px solid var(--mist); border-radius: 6px; margin: 10px 0; background: #fff; }
+  details[open] { border-color: var(--green); }
+  summary { cursor: pointer; padding: 12px 16px; font-weight: 700; color: var(--navy); }
+  details > div { padding: 0 16px 14px; }
+
+  ul.check { list-style: none; padding: 0; }
+  ul.check li { padding-left: 2rem; position: relative; margin: 8px 0; }
+  ul.check li::before { content: "\2713"; position: absolute; left: 0; color: var(--green); font-weight: 900; }
+
+  footer { background: var(--navy); color: var(--mist); padding: 28px 0; margin-top: 64px; font-size: .9rem; }
+  footer a { color: #fff; }
+  footer .tag { color: var(--green); font-weight: 700; }
+
+  .btn { display: inline-block; background: var(--green); color: var(--navy); font-weight: 700; padding: 10px 18px; border-radius: 6px; text-decoration: none; }
+  .btn:hover, .btn:focus-visible { background: #8fd043; }
+
+  @media (max-width: 600px) {
+    header.top img { width: 170px; }
+    header.top h1 { font-size: 1.5rem; }
+    body { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <img src="logo.png" alt="Olympus Controls – Applied Automation | West" width="220">
+    <div>
+      <h1>Xbox Controller Robot Jog</h1>
+      <p>Drive a UR or Meca500 robot arm with an Xbox controller from a Windows PC.</p>
+    </div>
+  </div>
+</header>
+
+<nav class="steps" aria-label="Steps">
+  <div class="wrap">
+    <a href="#install">1 Install</a>
+    <a href="#get">2 Get the code</a>
+    <a href="#packages">3 Packages</a>
+    <a href="#controller">4 Controller</a>
+    <a href="#robot">5 Robot</a>
+    <a href="#run">6 Run</a>
+    <a href="#controls">Controls</a>
+    <a href="#trouble">Troubleshooting</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <div class="warn" role="note">
+    <strong>There is no enable button.</strong> Sticks, triggers and bumpers move the robot the instant you touch them.
+    Keep the e-stop within reach, keep people clear of the arm, and always do a <code class="i">--dry-run</code> first.
+  </div>
+
+  <p>This guide assumes you already know the robot (pendant, Remote Control, e-stop, IP setup) but have never used GitHub or a code project before. Follow the steps in order; each one takes a few minutes. You only do steps 1&ndash;3 once per PC.</p>
+
+  <div class="ipbox">
+    <label for="ip">Your robot's IP address <small style="display:inline">(optional – fills in every command below)</small></label>
+    <input id="ip" type="text" inputmode="decimal" placeholder="e.g. 192.168.1.20" autocomplete="off" spellcheck="false">
+    <small>UR: on the pendant, <b>Menu &rarr; Settings &rarr; System &rarr; Network</b>. Otherwise see your cell documentation or integrator. Every robot is different.</small>
+  </div>
+
+  <!-- 1 -->
+  <section id="install">
+    <h2><span class="num">1</span> Install the tools</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Tool</th><th>Get it</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><b>Python 3.11 or 3.12</b></td><td><a href="https://www.python.org/downloads/windows/">python.org</a></td>
+            <td>On the first installer screen tick <b>"Add python.exe to PATH"</b>. Don't use 3.13 or newer (the robot library has no Windows package for it yet). The Microsoft Store version is not enough.</td></tr>
+        <tr><td><b>Git</b></td><td><a href="https://git-scm.com/download/win">git-scm.com</a></td><td>Accept all defaults.</td></tr>
+        <tr><td><b>VS Code</b></td><td><a href="https://code.visualstudio.com/">code.visualstudio.com</a></td><td>The editor you'll use to open the project and run commands.</td></tr>
+        <tr><td><b>Python extension</b></td><td>Inside VS Code</td><td>Press <code class="i">Ctrl+Shift+X</code>, search <b>Python</b>, install the one from Microsoft.</td></tr>
+      </tbody>
+    </table></div>
+    <p>If your work laptop blocks installs, ask IT for these four items.</p>
+  </section>
+
+  <!-- 2 -->
+  <section id="get">
+    <h2><span class="num">2</span> Get the code</h2>
+    <div class="note">A <b>repo</b> (repository) is just a project folder that Git keeps in sync with GitHub. <b>Cloning</b> means downloading your own copy of it.</div>
+    <ol>
+      <li>Open VS Code. Press <code class="i">Ctrl+Shift+P</code>, type <b>Git: Clone</b>, press Enter.</li>
+      <li>Paste this address, press Enter:
+        <div class="codebox"><pre id="repo-url">https://github.com/nickarmenta/robot_xbox_control</pre><button class="copy" data-copy-target="repo-url">Copy</button></div>
+      </li>
+      <li>Sign in to GitHub in the browser if asked.</li>
+      <li>Choose a folder to keep it in (for example <code class="i">C:\Users\&lt;you&gt;\source</code>), then click <b>Open</b> when VS Code offers.</li>
+      <li>If VS Code asks <i>"Do you trust the authors?"</i>, click <b>Yes, I trust</b>.</li>
+    </ol>
+    <p>No Git? <a class="repo-link" href="https://github.com/nickarmenta/robot_xbox_control">Open the repo page</a>, click the green <b>Code</b> button &rarr; <b>Download ZIP</b>, extract it, then in VS Code use <b>File &rarr; Open Folder</b>. You won't get updates this way.</p>
+  </section>
+
+  <!-- 3 -->
+  <section id="packages">
+    <h2><span class="num">3</span> Install the Python packages</h2>
+    <p>In VS Code open a terminal: <b>Terminal &rarr; New Terminal</b> (or <code class="i">Ctrl+`</code>). It opens in the project folder. Run these one line at a time:</p>
+    <div class="codebox"><pre id="c-venv"><span class="c"># use -3.11 if that's the version you installed</span>
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre><button class="copy" data-copy-target="c-venv">Copy</button></div>
+    <p>You should now see <code class="i">(.venv)</code> at the start of the terminal line. If VS Code asks to use the new environment for the workspace, click <b>Yes</b>. In any new terminal, run <code class="i">.venv\Scripts\Activate.ps1</code> again if <code class="i">(.venv)</code> is missing.</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="controller">
+    <h2><span class="num">4</span> Connect the controller</h2>
+    <ol>
+      <li>Plug in the Xbox 360 wireless receiver (or a wired controller) and press the controller's <b>Guide</b> button.</li>
+      <li>Press <code class="i">Win+R</code>, type <code class="i">joy.cpl</code>, Enter. Your controller should be listed. Open <b>Properties</b> and move the sticks to confirm.</li>
+      <li>Receiver shown as an unknown device? Install <b>Xbox 360 Wireless Receiver for Windows</b> from Windows Update or the Microsoft Update Catalog.</li>
+    </ol>
+  </section>
+
+  <!-- 5 -->
+  <section id="robot">
+    <h2><span class="num">5</span> Prepare the robot</h2>
+    <div class="tabs" role="tablist" aria-label="Robot type">
+      <button role="tab" id="tab-ur" aria-controls="p-ur" aria-selected="true">Universal Robots</button>
+      <button role="tab" id="tab-meca" aria-controls="p-meca" aria-selected="false">Meca500</button>
+    </div>
+    <div class="tabpanel" id="p-ur" role="tabpanel" aria-labelledby="tab-ur">
+      <ol>
+        <li>Power on, release the brakes, and switch the pendant to <b>Remote Control</b> (e-Series).</li>
+        <li>Give your PC a <b>static IP</b> on the robot's network: same first three numbers as the robot, a different last number, subnet mask <code class="i">255.255.255.0</code>.<br>
+            <small>Windows: Settings &rarr; Network &amp; internet &rarr; Ethernet &rarr; IP assignment &rarr; Edit &rarr; Manual.</small></li>
+        <li>Test it in the VS Code terminal:
+          <div class="codebox"><pre id="c-ping-ur">ping <span class="rip">&lt;ROBOT_IP&gt;</span></pre><button class="copy" data-copy-target="c-ping-ur">Copy</button></div>
+          You want replies, not "Request timed out".</li>
+      </ol>
+    </div>
+    <div class="tabpanel" id="p-meca" role="tabpanel" aria-labelledby="tab-meca" hidden>
+      <ol>
+        <li>Power on the Meca500.</li>
+        <li>Give your PC a <b>static IP</b> on the robot's network (same first three numbers, different last number, mask <code class="i">255.255.255.0</code>).</li>
+        <li><b>Close MecaPortal</b> and anything else connected to the robot. Only one control connection is allowed.</li>
+        <li>Test it:
+          <div class="codebox"><pre id="c-ping-meca">ping <span class="rip">&lt;ROBOT_IP&gt;</span></pre><button class="copy" data-copy-target="c-ping-meca">Copy</button></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="run">
+    <h2><span class="num">6</span> Run it &ndash; always in this order</h2>
+    <h3>A. Test the controller</h3>
+    <div class="codebox"><pre id="c-test">cd src
+python xbox/xbox_control.py</pre><button class="copy" data-copy-target="c-test">Copy</button></div>
+    <p>Move the sticks and triggers: the numbers on screen should change. Press <code class="i">Ctrl+C</code> to quit.</p>
+
+    <h3>B. Dry run &ndash; robot does NOT move</h3>
+    <p><b>UR:</b></p>
+    <div class="codebox"><pre id="c-dry-ur">python main.py --ip <span class="rip">&lt;ROBOT_IP&gt;</span> --dry-run</pre><button class="copy" data-copy-target="c-dry-ur">Copy</button></div>
+    <p><b>Meca500:</b></p>
+    <div class="codebox"><pre id="c-dry-meca">python meca_main.py --ip <span class="rip">&lt;ROBOT_IP&gt;</span> --dry-run</pre><button class="copy" data-copy-target="c-dry-meca">Copy</button></div>
+    <p>It connects, reads the robot's pose and prints what it <i>would</i> send. If a Windows Firewall popup appears, tick <b>Private networks</b> and click <b>Allow access</b>.</p>
+
+    <h3>C. Live</h3>
+    <div class="warn"><strong>Robot will move.</strong> Clear the work area, hand on the e-stop.</div>
+    <p><b>UR:</b></p>
+    <div class="codebox"><pre id="c-live-ur">python main.py --ip <span class="rip">&lt;ROBOT_IP&gt;</span></pre><button class="copy" data-copy-target="c-live-ur">Copy</button></div>
+    <p><b>Meca500:</b></p>
+    <div class="codebox"><pre id="c-live-meca">python meca_main.py --ip <span class="rip">&lt;ROBOT_IP&gt;</span></pre><button class="copy" data-copy-target="c-live-meca">Copy</button></div>
+    <p>The Meca500 script clears errors, activates and <b>homes</b> the robot on start. Homing moves the joints, so it asks for confirmation first (<code class="i">--yes</code> skips the question). If a dropped connection left the robot paused, it resumes.</p>
+
+    <h3>To stop</h3>
+    <ul class="check">
+      <li>Press <b>Back</b> on the controller, or <code class="i">Ctrl+C</code> in the terminal.</li>
+      <li>Emergency: the pendant <b>e-stop</b>. Closing the terminal also stops the program.</li>
+    </ul>
+  </section>
+
+  <!-- Controls -->
+  <section id="controls">
+    <h2>Controls</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Input</th><th>UR</th><th>Meca500</th></tr></thead>
+      <tbody>
+        <tr><td><b>Left stick</b></td><td>TCP X / Y (base frame)</td><td>TCP X / Y (world frame)</td></tr>
+        <tr><td><b>RT / LT</b></td><td>TCP Z up / down (base frame)</td><td>TCP Z up / down (world frame)</td></tr>
+        <tr><td><b>Right stick</b></td><td>Tilt tool about its own X (up/down) and Y (left/right), about the TCP</td><td>Tilt about tool X / Y (TCP)</td></tr>
+        <tr><td><b>RB / LB</b></td><td>Rotate tool CW / CCW about its own Z, about the TCP</td><td>Spin about tool Z</td></tr>
+        <tr><td><b>B (hold)</b></td><td>Fine speed (0.03 m/s vs 0.12 m/s)</td><td>Fine speed (10 vs 50 mm/s)</td></tr>
+        <tr><td><b>X</b></td><td>Toggle gripper (Robotiq Hand-E; needs the Robotiq URCap on the pendant, otherwise ignore X)</td><td>Toggle gripper (untested)</td></tr>
+        <tr><td><b>Y (hold)</b></td><td>Align tool straight down (tool Z = &minus;base Z), keeping heading. Releasing Y stops the move.</td><td>&mdash;</td></tr>
+        <tr><td><b>Start</b></td><td>Clear error: close popups, unlock protective stop, revive the RTDE script (press again if the protective stop is under 5 s old)</td><td>ResetError + ResumeMotion</td></tr>
+        <tr><td><b>Back</b></td><td>Stop and exit</td><td>Stop and exit</td></tr>
+      </tbody>
+    </table></div>
+    <p>Meca500: rotation overrides translation (one velocity command per tick).</p>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section id="trouble">
+    <h2>Troubleshooting</h2>
+    <p>Click a problem to see the fix.</p>
+
+    <details><summary>"python" is not recognized, or it opens the Microsoft Store</summary><div>
+      Reinstall Python with <b>Add python.exe to PATH</b> ticked, or turn off <i>Settings &rarr; Apps &rarr; Advanced app settings &rarr; App execution aliases</i> for python.exe. The <code class="i">py</code> command works even without PATH.</div></details>
+
+    <details><summary>"Activate.ps1 cannot be loaded because running scripts is disabled"</summary><div>
+      Run this once, then activate again:
+      <div class="codebox"><pre id="c-policy">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</pre><button class="copy" data-copy-target="c-policy">Copy</button></div></div></details>
+
+    <details><summary><code>pip install</code> fails on <code>ur_rtde</code></summary><div>
+      Python 3.13 and newer have no Windows package for it. Install Python 3.11 or 3.12, delete the <code class="i">.venv</code> folder, and redo step 3.</div></details>
+
+    <details><summary>"ModuleNotFoundError: rtde_control"</summary><div>
+      The virtual environment isn't active (no <code class="i">(.venv)</code> in the terminal line) or step 3 was skipped. Run <code class="i">.venv\Scripts\Activate.ps1</code>, then <code class="i">pip install -r requirements.txt</code>.</div></details>
+
+    <details><summary>"WARNING: no controller detected", or the controller test shows nothing</summary><div>
+      Check <code class="i">joy.cpl</code>. Press the Guide button, replace the batteries, re-plug the receiver, and close other apps that may be using the controller.</div></details>
+
+    <details><summary>Windows Firewall popup, or the connection times out</summary><div>
+      On the popup tick <b>Private networks</b> and click <b>Allow access</b>. If it was dismissed or you don't have admin rights, connections will time out: ask IT to allow <code class="i">python.exe</code> on private networks. Also check <code class="i">ping &lt;ROBOT_IP&gt;</code>, your PC's static IP and subnet, and turn off VPN or Wi-Fi that may be taking the route.</div></details>
+
+    <details><summary>UR connects but shows RTDE errors</summary><div>
+      The pendant isn't in <b>Remote Control</b>, the brakes aren't released, or another RTDE client is connected.</div></details>
+
+    <details><summary>Meca500 refuses the connection</summary><div>
+      MecaPortal or another client is still connected. Close it.</div></details>
+
+    <details><summary>"ERROR ... Press Start"</summary><div>
+      A protective stop, safety mode or failed command. Fix the cause, then press <b>Start</b> on the controller. Start never releases brakes or restarts safety: after an e-stop you need a physical reset on the pendant.</div></details>
+
+    <details><summary>Dry run prints commands but the robot doesn't move</summary><div>
+      That's what <code class="i">--dry-run</code> does. Run the same command without it.</div></details>
+
+    <details><summary>Robot won't move any further in one direction</summary><div>
+      You reached the workspace limit (see Safety below). If the arm starts outside the allowed area, only motion back inside is allowed.</div></details>
+
+    <details><summary>An axis moves the wrong way</summary><div>
+      Flip the matching <code class="i">sign_*</code> value in <code class="i">src/ur_control/jog.py</code> (UR) or <code class="i">src/meca_control/jog.py</code> (Meca500). Ask before changing other settings.</div></details>
+
+    <details><summary>The X button does nothing (UR)</summary><div>
+      Gripper control needs the Robotiq URCap installed and the gripper activated on the pendant. Without the URCap there is no gripper control: ignore X.</div></details>
+
+    <details><summary>The robot stops by itself</summary><div>
+      By design: commands stopped arriving (0.1 s timeout), the controller disconnected, or a fault occurred.</div></details>
+
+    <p>Still stuck? Copy the full terminal output (red text and all) and send it along with what you were doing.</p>
+  </section>
+
+  <section id="updates">
+    <h2>Getting updates</h2>
+    <p>In VS Code click the <b>Source Control</b> icon in the left bar, then <b>&hellip; &rarr; Pull</b>. Or in the terminal: <code class="i">git pull</code>. If Git complains about local changes, ask before forcing anything.</p>
+  </section>
+
+  <section id="safety">
+    <h2>Safety behavior</h2>
+    <h3>UR</h3>
+    <ul>
+      <li>Workspace (base frame): X &minus;0.400..&minus;0.100 m, Y &minus;0.300..&minus;0.100 m, Z &plusmn;0.30 m around the start pose, 10 mm stand-off. If the arm starts outside, only motion back inside is allowed.</li>
+      <li>Tool Z is held within 30&deg; of straight down (about 27&deg; reachable: 3&deg; margin, and tilt speed tapers earlier the faster you go). Tilt speed tapers to zero near the limit; spin about tool Z (bumpers) is unrestricted. Y re-aligns to vertical.</li>
+      <li>Velocity is shaped in software at 0.8 m/s&sup2; per axis, so stopping distance is known and the limits hold (verified in a closed-loop simulation with random inputs). <code class="i">track_accel</code> (3.0) is how tightly the robot follows, and how fast it stops if commands stop arriving (0.1 s timeout). Controller disconnect = zero velocity.</li>
+      <li>Faults (protective stop, safety mode, dead RTDE script, failed command) halt motion and print <code class="i">ERROR ... Press Start</code>.</li>
+      <li>The pendant speed slider and safety configuration still apply.</li>
+      <li>Tune in <code class="i">src/ur_control/jog.py</code> (<code class="i">JogConfig</code>).</li>
+    </ul>
+    <h3>Meca500</h3>
+    <ul>
+      <li>50 mm/s max (10 fine), 200 mm/s&sup2; slew. Default box &plusmn;100 mm around the start pose; change with <code class="i">--workspace XMIN YMIN ZMIN XMAX YMAX ZMAX</code>.</li>
+      <li><code class="i">SetVelTimeout(0.1)</code> stops the robot if commands stop. A stale pose or any robot error halts until Start.</li>
+      <li>Tune in <code class="i">src/meca_control/jog.py</code>.</li>
+    </ul>
+  </section>
+
+  <p><a class="btn repo-link" href="https://github.com/nickarmenta/robot_xbox_control">View the project on GitHub</a></p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="tag">Applied Automation</span> &middot; Olympus Controls<br>
+    Technical guide. Always follow your site's safety procedures.
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Single place to change after the repo moves to the Olympus-Controls organization.
+  var REPO_URL = "https://github.com/nickarmenta/robot_xbox_control";
+
+  document.getElementById("repo-url").textContent = REPO_URL;
+  Array.prototype.forEach.call(document.querySelectorAll("a.repo-link"), function (a) { a.href = REPO_URL; });
+
+  // Copy buttons
+  function flash(btn, msg) {
+    var old = btn.textContent; btn.textContent = msg;
+    setTimeout(function () { btn.textContent = old; }, 1500);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("button.copy"), function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.getAttribute("data-copy-target"));
+      var text = el.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { flash(btn, "Copied!"); }, function () { fallback(el, btn); });
+      } else { fallback(el, btn); }
+    });
+  });
+  function fallback(el, btn) {
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    flash(btn, "Press Ctrl+C");
+  }
+
+  // Robot tabs
+  var tabs = [["tab-ur", "p-ur"], ["tab-meca", "p-meca"]];
+  tabs.forEach(function (t) {
+    document.getElementById(t[0]).addEventListener("click", function () {
+      tabs.forEach(function (o) {
+        var sel = o[0] === t[0];
+        document.getElementById(o[0]).setAttribute("aria-selected", sel ? "true" : "false");
+        document.getElementById(o[1]).hidden = !sel;
+      });
+    });
+  });
+
+  // Robot IP substitution
+  var input = document.getElementById("ip");
+  var spans = document.querySelectorAll(".rip");
+  function fill() {
+    var v = input.value.trim();
+    var ok = /^[0-9.]{1,15}$/.test(v);
+    Array.prototype.forEach.call(spans, function (s) { s.textContent = ok && v ? v : "<ROBOT_IP>"; });
+  }
+  input.addEventListener("input", fill);
+})();
+</script>
+</body>
+</html>
